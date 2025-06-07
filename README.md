@@ -1,4 +1,4 @@
-# NHPC Backup Manager - Professional Edition
+# your Backup Manager - Professional Edition
 
 <div align="center">
   <img src="https://img.shields.io/badge/Version-2.1-blue.svg" alt="Version">
@@ -30,7 +30,7 @@
 
 ## 🎯 Overview
 
-**NHPC Backup Manager Professional Edition** is an enterprise-grade backup management system designed specifically for NHPC (National Hydroelectric Power Corporation) infrastructure. This comprehensive solution provides automated, scheduled, and on-demand backup capabilities for critical business data across multiple departments.
+**your Backup Manager Professional Edition** is an enterprise-grade backup management system designed specifically for your (National Hydroelectric Power Corporation) infrastructure. This comprehensive solution provides automated, scheduled, and on-demand backup capabilities for critical business data across multiple departments.
 
 ### Key Benefits
 
@@ -110,7 +110,7 @@ Bootstrap 5.3+
 
 ```bash
 # Clone the repository
-git clone https://github.com/nhpc/backup-manager-pro.git
+git clone https://github.com/your/backup-manager-pro.git
 cd backup-manager-pro
 
 # Build and run with Docker Compose
@@ -124,7 +124,7 @@ docker-compose up -d
 
 ```bash
 # 1. Clone Repository
-git clone https://github.com/nhpc/backup-manager-pro.git
+git clone https://github.com/your/backup-manager-pro.git
 cd backup-manager-pro
 
 # 2. Create Virtual Environment
@@ -152,13 +152,13 @@ python manage.py run
 
 ```bash
 # Using systemd (Linux)
-sudo cp scripts/nhpc-backup.service /etc/systemd/system/
-sudo systemctl enable nhpc-backup
-sudo systemctl start nhpc-backup
+sudo cp scripts/your-backup.service /etc/systemd/system/
+sudo systemctl enable your-backup
+sudo systemctl start your-backup
 
 # Using Windows Service
 python manage.py install-service
-net start "NHPC Backup Manager"
+net start "your Backup Manager"
 ```
 
 ---
@@ -170,8 +170,8 @@ net start "NHPC Backup Manager"
 After installation, access the web interface at `http://your-server:5000`
 
 **Default Credentials:**
-- Username: `admin@nhpc.com`
-- Password: `NHPCAdmin2024!`
+- Username: `adminUser.com`
+- Password: `youradminpass!`
 
 > ⚠️ **Security Note**: Change default credentials immediately after first login.
 
@@ -221,7 +221,7 @@ SECRET_KEY=your-secret-key-here
 DEBUG=False
 
 # Database Configuration
-DATABASE_URL=mysql://user:password@localhost/nhpc_backup
+DATABASE_URL=mysql://user:password@localhost/your_backup
 REDIS_URL=redis://localhost:6379/0
 
 # Security Settings
@@ -229,9 +229,9 @@ JWT_SECRET_KEY=your-jwt-secret-here
 PASSWORD_SALT=your-password-salt-here
 
 # Email Configuration
-MAIL_SERVER=smtp.nhpc.com
+MAIL_SERVER=smtp..com
 MAIL_PORT=587
-MAIL_USERNAME=backup-system@nhpc.com
+MAIL_USERNAME=backup-system.com
 MAIL_PASSWORD=your-email-password
 
 # Storage Configuration
@@ -357,7 +357,7 @@ def create_backup_task():
     data = {
         "name": "Database Backup",
         "type": "database",
-        "source": "mysql://localhost/nhpc_main",
+        "source": "mysql://localhost/your_main",
         "destination": "/backups/db/",
         "schedule": {
             "frequency": "daily",
@@ -391,11 +391,11 @@ def get_task_status(task_id):
 
 ```bash
 # Application Logs
-/var/log/nhpc-backup/application.log      # General application logs
-/var/log/nhpc-backup/backup-operations.log # Backup-specific operations
-/var/log/nhpc-backup/security.log        # Security and authentication
-/var/log/nhpc-backup/performance.log     # Performance metrics
-/var/log/nhpc-backup/error.log          # Error and exception logs
+/var/log/your-backup/application.log      # General application logs
+/var/log/your-backup/backup-operations.log # Backup-specific operations
+/var/log/your-backup/security.log        # Security and authentication
+/var/log/your-backup/performance.log     # Performance metrics
+/var/log/your-backup/error.log          # Error and exception logs
 ```
 
 ### Metrics Collection
@@ -417,13 +417,13 @@ GET http://localhost:9090/metrics
 
 ```bash
 # View recent backup operations
-tail -f /var/log/nhpc-backup/backup-operations.log
+tail -f /var/log/your-backup/backup-operations.log
 
 # Search for failed backups
-grep "FAILED" /var/log/nhpc-backup/backup-operations.log
+grep "FAILED" /var/log/your-backup/backup-operations.log
 
 # Monitor performance issues
-grep "WARNING\|ERROR" /var/log/nhpc-backup/performance.log
+grep "WARNING\|ERROR" /var/log/your-backup/performance.log
 ```
 
 ---
@@ -502,7 +502,7 @@ security:
 # Solution:
 1. Check disk space: df -h
 2. Verify permissions: ls -la /backup/path/
-3. Review logs: tail -f /var/log/nhpc-backup/error.log
+3. Review logs: tail -f /var/log/your-backup/error.log
 4. Test connectivity: ping backup-server
 ```
 
@@ -512,7 +512,7 @@ security:
 # Solution:
 1. Check running processes: ps aux | grep backup
 2. Monitor memory: free -h
-3. Restart services: systemctl restart nhpc-backup
+3. Restart services: systemctl restart your-backup
 4. Review configuration: grep -i memory config/*.yml
 ```
 
@@ -560,46 +560,6 @@ python manage.py test-connectivity
 # Storage analysis
 python manage.py storage-analysis
 ```
-
----
-
-## 🏢 Enterprise Support
-
-### Support Channels
-
-- **📧 Email Support**: support@nhpc-backup.com
-- **📞 Phone Support**: +91-11-2436-0100 (24/7 for Critical Issues)
-- **💬 Live Chat**: Available on dashboard (Business Hours)
-- **🎫 Ticket System**: https://support.nhpc-backup.com
-- **📚 Knowledge Base**: https://docs.nhpc-backup.com
-
-### Support Levels
-
-#### Standard Support
-- Business hours support (9 AM - 6 PM IST)
-- Email and ticket-based support
-- Knowledge base access
-- Community forum access
-
-#### Premium Support
-- 24/7 phone and email support
-- Priority ticket handling
-- Remote assistance capabilities
-- Quarterly health checks
-
-#### Enterprise Support
-- Dedicated support engineer
-- SLA guarantees (99.9% uptime)
-- Custom integrations support
-- On-site support available
-
-### Training and Documentation
-
-- **👨‍🏫 Administrator Training**: 3-day comprehensive training program
-- **📖 User Manual**: Complete 200+ page documentation
-- **🎥 Video Tutorials**: Step-by-step video guides
-- **🔧 Best Practices Guide**: Industry best practices and recommendations
-
 ---
 
 ## 📋 System Administration
@@ -608,13 +568,13 @@ python manage.py storage-analysis
 
 ```bash
 # Daily maintenance (automated)
-0 1 * * * /usr/local/bin/nhpc-backup daily-maintenance
+0 1 * * * /usr/local/bin/your-backup daily-maintenance
 
 # Weekly maintenance (automated)
-0 2 * * 0 /usr/local/bin/nhpc-backup weekly-maintenance
+0 2 * * 0 /usr/local/bin/your-backup weekly-maintenance
 
 # Monthly maintenance (manual oversight required)
-0 3 1 * * /usr/local/bin/nhpc-backup monthly-maintenance
+0 3 1 * * /usr/local/bin/your-backup monthly-maintenance
 ```
 
 ### Backup Retention Policies
@@ -663,14 +623,14 @@ python manage.py storage-analysis
 
 ## 📄 License
 
-**NHPC Backup Manager Professional Edition**
+**your Backup Manager Professional Edition**
 
-Copyright © 2024 National Hydroelectric Power Corporation (NHPC)
+Copyright © 2024 National Hydroelectric Power Corporation (your)
 
-This software is licensed under the NHPC Enterprise License Agreement. 
+This software is licensed under the your Enterprise License Agreement. 
 
 ### License Terms:
-- ✅ Internal use within NHPC and subsidiaries
+- ✅ Internal use within your and subsidiaries
 - ✅ Unlimited users and departments
 - ✅ Technical support and updates included
 - ❌ Distribution or resale prohibited
@@ -687,27 +647,27 @@ While this is proprietary enterprise software, internal contributions are welcom
 
 1. **Bug Reports**: Use internal ticketing system
 2. **Feature Requests**: Submit via product management portal
-3. **Security Issues**: Report directly to security@nhpc.com
+3. **Security Issues**: Report directly to security@your.com
 4. **Documentation**: Improvements welcome via internal review process
 
 ---
 
 ## 📞 Contact Information
 
-**NHPC Backup Manager Team**
-- **Project Manager**: Rajesh Kumar (rajesh.kumar@nhpc.co.in)
-- **Technical Lead**: Priya Sharma (priya.sharma@nhpc.co.in)
-- **Security Officer**: Amit Singh (amit.singh@nhpc.co.in)
-- **Support Team**: backup-support@nhpc.co.in
+**your Backup Manager Team**
+- **Project Manager**: Rajesh Kumar (rajesh.kumar@your.co.in)
+- **Technical Lead**: Priya Sharma (priya.sharma@your.co.in)
+- **Security Officer**: Amit Singh (amit.singh@your.co.in)
+- **Support Team**: backup-support@your.co.in
 
-**NHPC IT Division**
-- **Address**: NHPC Corporate Office, Faridabad, Haryana 121007
+**your IT Division**
+- **Address**: your Corporate Office, Faridabad, Haryana 121007
 - **Phone**: +91-129-2277-000
 - **Emergency**: +91-129-2277-911 (24/7)
 
 ---
 
 <div align="center">
-  <p><strong>Built with ❤️ for NHPC by the Enterprise Solutions Team</strong></p>
+  <p><strong>Built for  the Enterprise Solutions Team</strong></p>
   <p><em>Powering India's Energy Future with Reliable Backup Solutions</em></p>
 </div>
