@@ -26,8 +26,8 @@ app.config['SECRET_KEY'] = 'nhpc-backup-manager-2025-secure-admin'
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'nhpc_backup_manager',
-    'user': 'root',
-    'password': '1234'  # Update with your MySQL password
+    'user': 'your-user',
+    'password': 'your-password'  # Update with your MySQL password
 }
 
 # Initialize scheduler
