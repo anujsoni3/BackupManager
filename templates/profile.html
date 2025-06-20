@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Profile - NHPC Backup Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1rem;
+        }
+        .activity-card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .activity-card:hover {
+            transform: translateY(-2px);
+        }
+        .activity-timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+        .activity-item {
+            position: relative;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 1.5rem;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #007bff;
+        }
+        .activity-item.success::before {
+            background: #28a745;
+        }
+        .activity-item.failed::before {
+            background: #dc3545;
+        }
+        .activity-item.running::before {
+            background: #ffc107;
+        }
+        .stats-row {
+            margin-bottom: 2rem;
+        }
+        .stat-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border-left: 4px solid #007bff;
+        }
+        .stat-box.success {
+            border-left-color: #28a745;
+        }
+        .stat-box.warning {
+            border-left-color: #ffc107;
+        }
+        .stat-box.danger {
+            border-left-color: #dc3545;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .form-label{
+            font-weight: 500;
+            color: #0f0f0f;
+        }
+
+        /* Task Management Styles */
+        .task-management-section {
+            margin-top: 3rem;
+        }
+        .task-table-container {
+            background: #1e293b;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .task-table-header {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            color: white;
+            padding: 1.5rem;
+            border-bottom: none;
+        }
+        .task-table-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        .task-filters {
+            background: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .custom-table {
+            margin: 0;
+            background: white;
+        }
+        .custom-table thead {
+            background: #64748b;
+            color: white;
+        }
+        .custom-table thead th {
+            border: none;
+            font-weight: 600;
+            padding: 1rem 0.75rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .custom-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        .custom-table tbody tr:hover {
+            background-color: #f1f5f9;
+            transform: scale(1.01);
+        }
+        .custom-table tbody td {
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            border: none;
+        }
+        .task-name-cell {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .task-path {
+            font-size: 0.8rem;
+            color: #64748b;
+            display: block;
+            margin-top: 0.25rem;
+        }
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-scheduled {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        .status-running {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        .status-completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        .status-failed {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        .status-paused {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .btn-edit {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        .btn-run {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        .btn-pause {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        .frequency-badge {
+            background: #e0f2fe;
+            color: #0277bd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .department-tag {
+            background: #f3e8ff;
+            color: #7c3aed;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .task-type-tag {
+            background: #ecfdf5;
+            color: #059669;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .datetime-text {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .no-tasks {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+        .no-tasks i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .filter-section {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .filter-select {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            background: white;
+        }
+        .search-input {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-server me-2 text-primary"></i>
+                NHPC Backup Manager
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/"><i class="fas fa-dashboard me-1"></i> Dashboard</a>
+                <a class="nav-link" href="/add_task"><i class="fas fa-plus me-1"></i> Add Task</a>
+                <a class="nav-link active" href="/profile"><i class="fas fa-user me-1"></i> Profile</a>
+                <a class="nav-link" href="/add_admin"><i class="fas fa-user-plus me-1"></i> Add Admin</a>
+                <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="profile-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <h2 class="mb-2">{{ admin_name }}</h2>
+                    <p class="mb-2"><i class="fas fa-envelope me-2"></i>{{ admin_email }}</p>
+                    <p class="mb-0"><i class="fas fa-shield-alt me-2"></i>System Administrator</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Task Statistics -->
+        <div class="stats-row">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-box">
+                        <div class="stat-number text-primary">{{ admin_tasks|length if admin_tasks else 0 }}</div>
+                        <div class="text-muted">Total Tasks</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box success">
+                        <div class="stat-number text-success">
+                            {% set active_count = admin_tasks|selectattr('is_active', 'equalto', 1)|list|length if admin_tasks else 0 %}
+                            {{ active_count }}
+                        </div>
+                        <div class="text-muted">Active Tasks</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box warning">
+                        <div class="stat-number text-warning">
+                            {% set scheduled_count = admin_tasks|selectattr('status', 'equalto', 'scheduled')|list|length if admin_tasks else 0 %}
+                            {{ scheduled_count }}
+                        </div>
+                        <div class="text-muted">Scheduled</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box danger">
+                        <div class="stat-number text-danger">
+                            {% set failed_count = admin_tasks|selectattr('status', 'equalto', 'failed')|list|length if admin_tasks else 0 %}
+                            {{ failed_count }}
+                        </div>
+                        <div class="text-muted">Failed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Management Section -->
+        <div class="task-management-section">
+            <div class="task-table-container">
+                <div class="task-table-header">
+                    <h4><i class="fas fa-tasks me-2"></i>My Backup Tasks</h4>
+                </div>
+                
+                <!-- Filters -->
+                <div class="task-filters">
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <label class="form-label mb-0">Search:</label>
+                            <input type="text" class="search-input" id="taskSearch" placeholder="Search tasks...">
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label mb-0">Status:</label>
+                            <select class="filter-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="running">Running</option>
+                                <option value="completed">Completed</option>
+                                <option value="failed">Failed</option>
+                                <option value="paused">Paused</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label mb-0">Department:</label>
+                            <select class="filter-select" id="departmentFilter">
+                                <option value="">All Departments</option>
+                                {% if admin_tasks %}
+                                    {% for dept in admin_tasks|map(attribute='department')|unique %}
+                                        <option value="{{ dept }}">{{ dept }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label mb-0">Type:</label>
+                            <select class="filter-select" id="typeFilter">
+                                <option value="">All Types</option>
+                                {% if admin_tasks %}
+                                    {% for type in admin_tasks|map(attribute='task_type')|unique %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="filter-group ms-auto">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+               {% if admin_tasks %}
+                <div class="table-responsive">
+                    <table class="table custom-table" id="tasksTable">
+                        <thead>
+                            <tr>
+                                <th>Task Name</th>
+                                <th>Department</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Last Run</th>
+                                <th>Next Run</th>
+                                <th>Frequency</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in admin_tasks %}
+                            <tr data-task-id="{{ task.id }}" 
+                                data-status="{{ task.status }}" 
+                                data-department="{{ task.department }}" 
+                                data-type="{{ task.task_type }}">
+                                <td class="task-name-cell">
+                                    {{ task.task_name }}
+                                    <span class="task-path">
+                                        <i class="fas fa-folder me-1"></i>{{ task.source_path[:50] }}...
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="department-tag">{{ task.department }}</span>
+                                </td>
+                                <td>
+                                    <span class="task-type-tag">{{ task.task_type }}</span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ task.status }}">
+                                        {% if task.status == 'scheduled' %}
+                                            <i class="fas fa-clock me-1"></i>
+                                        {% elif task.status == 'running' %}
+                                            <i class="fas fa-spinner fa-spin me-1"></i>
+                                        {% elif task.status == 'completed' %}
+                                            <i class="fas fa-check me-1"></i>
+                                        {% elif task.status == 'failed' %}
+                                            <i class="fas fa-times me-1"></i>
+                                        {% elif task.status == 'paused' %}
+                                            <i class="fas fa-pause me-1"></i>
+                                        {% endif %}
+                                        {{ task.status|title }}
+                                    </span>
+                                </td>
+                                <td class="datetime-text">
+                                    {{ task.last_run.strftime('%d/%m/%Y, %H:%M') if task.last_run else 'Never' }}
+                                </td>
+                                <td class="datetime-text">
+                                    {{ task.next_run.strftime('%d/%m/%Y, %H:%M') if task.next_run else 'Not scheduled' }}
+                                </td>
+                                <td>
+                                    <span class="frequency-badge">{{ task.repeat_frequency|title }}</span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                       
+                                        <button class="action-btn btn-edit" onclick="editTask('{{ task.id }}')" title="Edit Task">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                       <button class="action-btn btn-delete"
+                                                data-task-id="{{ task.id }}"
+                                                data-task-name="{{ task.task_name | e }}"
+                                                onclick="handleDeleteClick(this)"
+                                                title="Delete Task">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> <!-- Tasks Table -->
+                
+                {% else %}
+                <div class="no-tasks">
+                    <i class="fas fa-tasks"></i>
+                    <h5>No Tasks Found</h5>
+                    <p>You haven't created any backup tasks yet.</p>
+                    <a href="/add_task" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create Your First Task
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4 mt-4">
+            <div class="col-md-6">
+                <div class="card activity-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                        <h5>Add New Admin</h5>
+                        <p class="text-muted">Create a new administrator account</p>
+                        <a href="/add_admin" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Admin
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card activity-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-key fa-3x text-warning mb-3"></i>
+                        <h5>Change Password</h5>
+                        <p class="text-muted">Update your account password</p>
+                        <button class="btn btn-warning" onclick="showChangePasswordModal()">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card activity-card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Activity
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if task_history %}
+                <div class="activity-timeline">
+                    {% for activity in task_history[:10] %}
+                    <div class="activity-item {{ activity[2] }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ activity[0] }}</h6>
+                                <p class="mb-1 text-muted">{{ activity[3] }}</p>
+                                <div class="small text-muted">
+                                    {% if activity[4] %}
+                                        <i class="fas fa-file me-1"></i>{{ activity[4] }} files
+                                    {% endif %}
+                                    {% if activity[5] %}
+                                        <i class="fas fa-hdd ms-3 me-1"></i>{{ "%.2f"|format(activity[5]) }} MB
+                                    {% endif %}
+                                    {% if activity[6] %}
+                                        <i class="fas fa-clock ms-3 me-1"></i>{{ activity[6] }}s
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{{ 'success' if activity[2] == 'success' else 'danger' if activity[2] == 'failed' else 'warning' }}">
+                                    {{ activity[2]|title }}
+                                </span>
+                                <div class="small text-muted mt-1">
+                                    {{ activity[1].strftime('%Y-%m-%d %H:%M') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Activity Yet</h5>
+                    <p class="text-muted">Your backup task activity will appear here</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title form-label">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="changePasswordForm" action="/change_password" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" name="current_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" name="new_password" required minlength="8">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" name="confirm_password" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning form-label">
+                            <i class="fas fa-save me-2"></i>Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showChangePasswordModal() {
+            document.getElementById('changePasswordForm').reset();
+            new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+        }
+
+        // Task Management Functions
+          function handleDeleteClick(button) {
+            const taskId = button.getAttribute('data-task-id');
+            const taskName = button.getAttribute('data-task-name');
+            deleteTask(taskId, taskName);
+        }
+
+
+        function pauseTask(taskId) {
+            if (confirm('Are you sure you want to pause this task?')) {
+                fetch(`/pause_task/${taskId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error pausing task: ' + error);
+                });
+            }
+        }
+
+        function editTask(taskId) {
+            window.location.href = `/edit_task/${taskId}`;
+        }
+
+        function deleteTask(taskId, taskName) {
+            if (confirm(`Are you sure you want to delete the task "${taskName}"? This action cannot be undone.`)) {
+                fetch(`/delete_task/${taskId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error deleting task: ' + error);
+                });
+            }
+        }
+
+        // Filter Functions
+        function filterTasks() {
+            const searchTerm = document.getElementById('taskSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            const rows = document.querySelectorAll('#tasksTable tbody tr');
+            
+            rows.forEach(row => {
+                const taskName = row.querySelector('.task-name-cell').textContent.toLowerCase();
+                const status = row.dataset.status;
+                const department = row.dataset.department;
+                const type = row.dataset.type;
+                
+                const matchesSearch = taskName.includes(searchTerm);
+                const matchesStatus = !statusFilter || status === statusFilter;
+                const matchesDepartment = !departmentFilter || department === departmentFilter;
+                const matchesType = !typeFilter || type === typeFilter;
+                
+                if (matchesSearch && matchesStatus && matchesDepartment && matchesType) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('taskSearch').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('departmentFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            filterTasks();
+        }
+
+        // Add event listeners for filters
+        document.getElementById('taskSearch').addEventListener('input', filterTasks);
+        document.getElementById('statusFilter').addEventListener('change', filterTasks);
+        document.getElementById('departmentFilter').addEventListener('change', filterTasks);
+        document.getElementById('typeFilter').addEventListener('change', filterTasks);
+
+        // Password form validation
+        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+            const form = this;
+            const currentPassword = form.elements['current_password'].value;
+            const newPassword = form.elements['new_password'].value;
+            const confirmPassword = form.elements['confirm_password'].value;
+            
+            if (newPassword.length < 8) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                e.preventDefault();
+                alert('New passwords do not match!');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

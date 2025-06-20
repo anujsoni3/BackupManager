@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NHPC Backup Manager</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -15,9 +16,16 @@
                 <i class="fas fa-server me-2 text-primary"></i>
                 NHPC Backup Manager
             </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/"><i class="fas fa-dashboard me-1"></i> Dashboard</a>
+            <div class="navbar-nav ms-auto d-flex align-items-center">
+                <a class="nav-link active" href="/"><i class="fas fa-dashboard me-1"></i> Dashboard</a>
                 <a class="nav-link" href="/add_task"><i class="fas fa-plus me-1"></i> Add Task</a>
+                <a class="nav-link" href="/profile"><i class="fas fa-user me-1"></i> Profile</a>
+                <a class="nav-link" href="/add_admin"><i class="fas fa-user-plus me-1"></i> Add Admin</a>
+                <div class="admin-info">
+                    <i class="fas fa-user-shield me-2"></i>
+                    <span>{{ session.admin_name }}</span>
+                </div>
+                <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
             </div>
         </div>
     </nav>
@@ -50,9 +58,10 @@
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="stat-number text-success">
-                    {% set completed_count = tasks|selectattr('4', 'equalto', 'completed')|list|length %}
+                    {% set completed_count = tasks|selectattr('6', 'equalto', 'completed')|list|length %}
                     {{ completed_count }}
                 </div>
+
                 <div class="stat-label text-muted">Completed Today</div>
             </div>
             <div class="stat-card">
@@ -60,7 +69,7 @@
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="stat-number text-warning">
-                    {% set running_count = tasks|selectattr('4', 'equalto', 'running')|list|length %}
+                    {% set running_count = tasks|selectattr('6', 'equalto', 'running')|list|length %}
                     {{ running_count }}
                 </div>
                 <div class="stat-label text-muted">Running Now</div>
@@ -70,7 +79,7 @@
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
                 <div class="stat-number text-danger">
-                    {% set failed_count = tasks|selectattr('4', 'equalto', 'failed')|list|length %}
+                    {% set failed_count = tasks|selectattr('6', 'equalto', 'failed')|list|length %}
                     {{ failed_count }}
                 </div>
                 <div class="stat-label text-muted">Failed Tasks</div>
@@ -85,7 +94,7 @@
             <div class="card-body p-0">
                 {% if tasks %}
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 table-head">
                         <thead>
                             <tr>
                                 <th>Task Name</th>
@@ -168,7 +177,7 @@
             <div class="card-body">
                 {% if recent_logs %}
                 <div class="table-responsive">
-                    <table class="table table-sm">
+                    <table class="table table-sm table-head">
                         <thead>
                             <tr>
                                 <th>Task</th>

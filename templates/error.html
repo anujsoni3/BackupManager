@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - NHPC Backup Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .error-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 50px 40px;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        .error-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .error-title {
+            color: #333;
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .error-message {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .error-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #dc3545;
+        }
+        .error-details h5 {
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .error-details ul {
+            text-align: left;
+            color: #666;
+            margin-bottom: 0;
+        }
+        .error-details li {
+            margin-bottom: 8px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+        .system-status {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #856404;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-red { background-color: #dc3545; }
+        .status-yellow { background-color: #ffc107; }
+        .status-green { background-color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="error-title">System Error</h1>
+        
+        <p class="error-message">
+            We're experiencing technical difficulties with the NHPC Backup Manager system. 
+            Please try again in a few moments.
+        </p>
+
+        <div class="error-details">
+            <h5><i class="fas fa-info-circle me-2"></i>Common Causes:</h5>
+            <ul>
+                <li><span class="status-indicator status-red"></span>Database connection failure</li>
+                <li><span class="status-indicator status-yellow"></span>Network connectivity issues</li>
+                <li><span class="status-indicator status-yellow"></span>Server maintenance in progress</li>
+                <li><span class="status-indicator status-red"></span>Configuration errors</li>
+                <li><span class="status-indicator status-yellow"></span>High system load</li>
+            </ul>
+        </div>
+
+        <div class="btn-group">
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                <i class="fas fa-redo me-2"></i>
+                Try Again
+            </button>
+            <a href="/login" class="btn btn-secondary">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Go to Login
+            </a>
+        </div>
+
+        <div class="system-status">
+            <strong><i class="fas fa-tools me-2"></i>Troubleshooting:</strong><br>
+            If this problem persists, please contact your system administrator or check:
+            <br>• MySQL service status
+            <br>• Network connectivity
+            <br>• Application logs
+        </div>
+
+        <!-- Auto-retry mechanism -->
+        <div class="mt-4">
+            <small class="text-muted">
+                <i class="fas fa-clock me-1"></i>
+                Auto-retry in <span id="countdown">30</span> seconds
+            </small>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-retry countdown
+        let countdown = 30;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.reload();
+            }
+        }, 1000);
+
+        // Stop countdown if user clicks try again
+        document.querySelector('.btn-primary').addEventListener('click', () => {
+            clearInterval(timer);
+        });
+
+        // Add some visual feedback for system status
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate checking system components
+            setTimeout(() => {
+                const indicators = document.querySelectorAll('.status-indicator');
+                indicators.forEach((indicator, index) => {
+                    setTimeout(() => {
+                        indicator.style.animation = 'pulse 1s ease-in-out';
+                    }, index * 200);
+                });
+            }, 1000);
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                window.location.reload();
+            } else if (e.key === 'l' || e.key === 'L') {
+                e.preventDefault();
+                window.location.href = '/login';
+            }
+        });
+    </script>
+</body>
+</html>

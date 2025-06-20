@@ -1,0 +1,118 @@
+<!-- edit_task.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Task - NHPC Backup Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-server me-2 text-primary"></i>
+                NHPC Backup Manager
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/"><i class="fas fa-dashboard me-1"></i> Dashboard</a>
+                <a class="nav-link" href="/add_task"><i class="fas fa-plus me-1"></i> Add Task</a>
+                <a class="nav-link" href="/profile"><i class="fas fa-user me-1"></i> Profile</a>
+                <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-edit me-2"></i>Edit Task: {{ task.task_name }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Task Name</label>
+                                        <input type="text" class="form-control" name="task_name" value="{{ task.task_name }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Department</label>
+                                        <select class="form-select" name="department" required>
+                                            <option value="IT" {{ 'selected' if task.department == 'IT' }}>IT</option>
+                                            <option value="Finance" {{ 'selected' if task.department == 'Finance' }}>Finance</option>
+                                            <option value="HR" {{ 'selected' if task.department == 'HR' }}>HR</option>
+                                            <option value="Operations" {{ 'selected' if task.department == 'Operations' }}>Operations</option>
+                                            <option value="Engineering" {{ 'selected' if task.department == 'Engineering' }}>Engineering</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Source Path</label>
+                                <input type="text" class="form-control" name="source_path" value="{{ task.source_path }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Destination Path</label>
+                                <input type="text" class="form-control" name="destination_path" value="{{ task.destination_path }}" required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Task Type</label>
+                                        <select class="form-select" name="task_type" required>
+                                            <option value="Full Backup" {{ 'selected' if task.task_type == 'Full Backup' }}>Full Backup</option>
+                                            <option value="Incremental" {{ 'selected' if task.task_type == 'Incremental' }}>Incremental</option>
+                                            <option value="Differential" {{ 'selected' if task.task_type == 'Differential' }}>Differential</option>
+                                            <option value="Database" {{ 'selected' if task.task_type == 'Database' }}>Database</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Repeat Frequency</label>
+                                        <select class="form-select" name="repeat_frequency" required>
+                                            <option value="daily" {{ 'selected' if task.repeat_frequency == 'daily' }}>Daily</option>
+                                            <option value="weekly" {{ 'selected' if task.repeat_frequency == 'weekly' }}>Weekly</option>
+                                            <option value="monthly" {{ 'selected' if task.repeat_frequency == 'monthly' }}>Monthly</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Scheduled Time</label>
+                                <input type="time" class="form-control" name="scheduled_time" value="{{ task.scheduled_time }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Remarks</label>
+                                <textarea class="form-control" name="remarks" rows="3">{{ task.remarks }}</textarea>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('profile') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Task
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

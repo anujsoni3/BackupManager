@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Admin - NHPC Backup Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .nav-link:hover {
+            color: #f8f9fa !important;
+        }
+        .main-container {
+            padding-top: 30px;
+            padding-bottom: 50px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: none;
+            padding: 20px 30px;
+        }
+        .card-body {
+            padding: 30px;
+        }
+        .form-label {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .password-requirements {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .requirement i {
+            margin-right: 8px;
+            width: 16px;
+        }
+        .requirement.valid {
+            color: #28a745;
+        }
+        .requirement.invalid {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-server me-2"></i>
+                NHPC Backup Manager
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/"><i class="fas fa-dashboard me-1"></i> Dashboard</a>
+                <a class="nav-link" href="/profile"><i class="fas fa-user me-1"></i> Profile</a>
+                <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Add New Administrator
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" id="addAdminForm">
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-user me-1"></i>
+                                    Full Name *
+                                </label>
+                                <input type="text" class="form-control" name="name" required
+                                       placeholder="Enter administrator's full name">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    Email Address *
+                                </label>
+                                <input type="email" class="form-control" name="email" required
+                                       placeholder="Enter email address">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-lock me-1"></i>
+                                    Password *
+                                </label>
+                                <input type="password" class="form-control" name="password" id="password" required
+                                       placeholder="Enter password (minimum 6 characters)">
+                                
+                                <div class="password-requirements">
+                                    <div class="requirement" id="length-req">
+                                        <i class="fas fa-times"></i>
+                                        At least 6 characters
+                                    </div>
+                                    <div class="requirement" id="letter-req">
+                                        <i class="fas fa-times"></i>
+                                        At least one letter
+                                    </div>
+                                    <div class="requirement" id="number-req">
+                                        <i class="fas fa-times"></i>
+                                        At least one number
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-lock me-1"></i>
+                                    Confirm Password *
+                                </label>
+                                <input type="password" class="form-control" name="confirm_password" id="confirmPassword" required
+                                       placeholder="Confirm password">
+                                <div id="password-match" class="mt-2" style="display: none;">
+                                    <small class="text-danger">
+                                        <i class="fas fa-times me-1"></i>
+                                        Passwords do not match
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Important:</strong> The new administrator will have full access to the backup management system. 
+                                Please ensure you trust this person with administrative privileges.
+                            </div>
+
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Create Administrator
+                                </button>
+                                <a href="/profile" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Password validation
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const submitBtn = document.getElementById('submitBtn');
+        const lengthReq = document.getElementById('length-req');
+        const letterReq = document.getElementById('letter-req');
+        const numberReq = document.getElementById('number-req');
+        const passwordMatch = document.getElementById('password-match');
+
+        function validatePassword() {
+            const pwd = password.value;
+            let isValid = true;
+
+            // Length check
+            if (pwd.length >= 6) {
+                lengthReq.classList.add('valid');
+                lengthReq.classList.remove('invalid');
+                lengthReq.querySelector('i').className = 'fas fa-check';
+            } else {
+                lengthReq.classList.add('invalid');
+                lengthReq.classList.remove('valid');
+                lengthReq.querySelector('i').className = 'fas fa-times';
+                isValid = false;
+            }
+
+            // Letter check
+            if (/[a-zA-Z]/.test(pwd)) {
+                letterReq.classList.add('valid');
+                letterReq.classList.remove('invalid');
+                letterReq.querySelector('i').className = 'fas fa-check';
+            } else {
+                letterReq.classList.add('invalid');
+                letterReq.classList.remove('valid');
+                letterReq.querySelector('i').className = 'fas fa-times';
+                isValid = false;
+            }
+
+            // Number check
+            if (/\d/.test(pwd)) {
+                numberReq.classList.add('valid');
+                numberReq.classList.remove('invalid');
+                numberReq.querySelector('i').className = 'fas fa-check';
+            } else {
+                numberReq.classList.add('invalid');
+                numberReq.classList.remove('valid');
+                numberReq.querySelector('i').className = 'fas fa-times';
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validatePasswordMatch() {
+            if (password.value && confirmPassword.value) {
+                const match = password.value === confirmPassword.value;
+                passwordMatch.style.display = match ? 'none' : 'block';
+                return match;
+            }
+            passwordMatch.style.display = 'none';
+            return true;
+        }
+
+        function validateForm() {
+            const pwdValid = validatePassword();
+            const matchValid = validatePasswordMatch();
+            submitBtn.disabled = !(pwdValid && matchValid && password.value && confirmPassword.value);
+        }
+
+        password.addEventListener('input', validateForm);
+        confirmPassword.addEventListener('input', validateForm);
+
+        // Form submission
+        document.getElementById('addAdminForm').addEventListener('submit', function(e) {
+            if (!validatePassword() || !validatePasswordMatch()) {
+                e.preventDefault();
+                alert('Please fix the password requirements before submitting.');
+            }
+        });
+    </script>
+</body>
+</html>
