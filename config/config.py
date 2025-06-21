@@ -7,15 +7,15 @@ class Config:
     DB_CONFIG = {
         'host': 'localhost',
         'database': 'nhpc_backup_manager',
-        'user': 'backup_admin',
-        'password': 'NHPC@Backup2025'
+        'user': 'root',
+        'password': 'your-pass'
     }
     
     # Email Configuration (for notifications)
     MAIL_SERVER = 'your-smtp-server.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = 'backup-alerts@nhpc.com'
+    MAIL_USERNAME = 'emailcom'
     MAIL_PASSWORD = 'your-email-password'
     
     # Backup Settings
