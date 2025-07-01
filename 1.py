@@ -1,4 +1,4 @@
-# NHPC Backup Manager - Secure Admin Version with Email Notifications
+# NHPC Backup Manager - Secure Admin Version
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 import mysql.connector
 from mysql.connector import Error
@@ -17,7 +17,6 @@ from email.mime.multipart import MIMEMultipart
 import bcrypt
 from functools import wraps
 import shutil
-
 import sys
 # Initialize Flask app
 app = Flask(__name__)
@@ -27,18 +26,8 @@ app.config['SECRET_KEY'] = 'nhpc-backup-manager-2025-secure-admin'
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'nhpc_backup_manager',
-    'user': 'your-user',
-    'password': 'your-password'  # Update with your MySQL password
-}
-
-# Email configuration - Update these with your email settings
-EMAIL_CONFIG = {
-    'smtp_server': 'smtp.gmail.com',  # Change to your SMTP server
-    'smtp_port': 587,  # or 465 for SSL
-    'use_tls': True,  # Set to False if using SSL on port 465
-    'sender_email': 'soni3anuj@gmail.com',  # Your email address
-    'sender_password': 'xlibmqyetlslxdtl',  # Your email app password
-    'notification_emails': ['soni13anuj@gmail.com', 'admin@nhpc.com']  # List of emails to notify
+    'user': 'root',
+    'password': '1234'  # Update with your MySQL password
 }
 
 # Initialize scheduler
@@ -61,17 +50,6 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'admin_id' not in session:
             return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def login_required_ajax(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'admin_id' not in session:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-            else:
-                return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -213,7 +191,7 @@ class BackupManager:
         finally:
             cursor.close()
             connection.close()
-    
+    # Add this method to your BackupManager class
     def update_admin_password(self, admin_id, current_password, new_password):
         """Update admin password after verification"""
         # Verify current password first
@@ -295,29 +273,8 @@ class BackupManager:
         finally:
             cursor.close()
             connection.close()
-   
-    def update_task_status(self, task_id, status):
-        """Update task status"""
-        try:
-            connection = self.get_db_connection()
-            if not connection:
-                return
-            
-            cursor = connection.cursor()
-            query = """
-                UPDATE backup_tasks 
-                SET status = %s, updated_at = NOW()
-                WHERE id = %s
-            """
-            cursor.execute(query, (status, task_id))
-            connection.commit()
-            return True
-            
-        except Exception as e:
-            print(f"Error updating task status: {e}")
-            connection.rollback()
-            return False
 
+    
     def log_task_execution(self, task_id, admin_id, status, message, **kwargs):
         """Log new task execution and return log_id"""
         connection = self.get_db_connection()
@@ -355,310 +312,21 @@ class BackupManager:
             return []
         
         cursor = connection.cursor()
-        if admin_id == 1:  # Superadmin
-            cursor.execute("""
-                SELECT bt.task_name, bl.run_time, bl.status, bl.log_message, bl.files_copied, 
-                    bl.total_size_mb, bl.duration_seconds
-                FROM backup_logs bl
-                JOIN backup_tasks bt ON bl.task_id = bt.id
-                ORDER BY bl.run_time DESC
-                LIMIT 50
-            """)
-        else:
-            cursor.execute("""
-                SELECT bt.task_name, bl.run_time, bl.status, bl.log_message, bl.files_copied, 
-                    bl.total_size_mb, bl.duration_seconds
-                FROM backup_logs bl
-                JOIN backup_tasks bt ON bl.task_id = bt.id
-                WHERE bl.admin_id = %s
-                ORDER BY bl.run_time DESC
-                LIMIT 50
-            """, (admin_id,))
-            
+        cursor.execute("""
+            SELECT bl.*, bt.task_name 
+            FROM backup_logs bl
+            JOIN backup_tasks bt ON bl.task_id = bt.id
+            WHERE bl.admin_id = %s 
+            OR bt.created_by = %s
+            ORDER BY bl.start_time DESC
+            LIMIT 10
+        """, (admin_id, admin_id))
+    
+        
         history = cursor.fetchall()
         cursor.close()
         connection.close()
         return history
-    
-    def get_admin_tasks(self, admin_id):
-        """Get all tasks created by a specific admin, or all if admin_id == 1 (default admin)"""
-        try:
-            connection = self.get_db_connection()
-            if not connection:
-                return []
-            
-            cursor = connection.cursor()
-
-            if admin_id == 1:
-                # Super admin can view all tasks
-                query = """
-                    SELECT id, task_name, source_path, destination_path, department, 
-                        task_type, remarks, scheduled_time, repeat_frequency, 
-                        status, last_run, next_run, created_at, updated_at, 
-                        is_active, created_by
-                    FROM backup_tasks 
-                    ORDER BY created_at DESC
-                """
-                cursor.execute(query)
-            else:
-                # Regular admin sees only their tasks
-                query = """
-                    SELECT id, task_name, source_path, destination_path, department, 
-                        task_type, remarks, scheduled_time, repeat_frequency, 
-                        status, last_run, next_run, created_at, updated_at, 
-                        is_active, created_by
-                    FROM backup_tasks 
-                    WHERE created_by = %s 
-                    ORDER BY created_at DESC
-                """
-                cursor.execute(query, (admin_id,))
-
-            tasks = cursor.fetchall()
-            
-            # Convert to list of dictionaries for easier template usage
-            task_list = []
-            for task in tasks:
-                task_dict = {
-                    'id': task[0],
-                    'task_name': task[1],
-                    'source_path': task[2],
-                    'destination_path': task[3],
-                    'department': task[4],
-                    'task_type': task[5],
-                    'remarks': task[6],
-                    'scheduled_time': task[7],
-                    'repeat_frequency': task[8],
-                    'status': task[9],
-                    'last_run': task[10],
-                    'next_run': task[11],
-                    'created_at': task[12],
-                    'updated_at': task[13],
-                    'is_active': task[14],
-                    'created_by': task[15]
-                }
-                task_list.append(task_dict)
-            
-            return task_list
-            
-        except Exception as e:
-            print(f"Error getting admin tasks: {e}")
-            return []
-
-    def get_task_by_id(self, task_id):
-        """Get a specific task by ID"""
-        try:
-            connection = self.get_db_connection()
-            if not connection:
-                return []
-            
-            cursor = connection.cursor()
-            query = """
-                SELECT id, task_name, source_path, destination_path, department, 
-                       task_type, remarks, scheduled_time, repeat_frequency, 
-                       status, last_run, next_run, created_at, updated_at, 
-                       is_active, created_by
-                FROM backup_tasks 
-                WHERE id = %s
-            """
-            cursor.execute(query, (task_id,))
-            task = cursor.fetchone()
-            
-            if task:
-                return {
-                    'id': task[0],
-                    'task_name': task[1],
-                    'source_path': task[2],
-                    'destination_path': task[3],
-                    'department': task[4],
-                    'task_type': task[5],
-                    'remarks': task[6],
-                    'scheduled_time': task[7],
-                    'repeat_frequency': task[8],
-                    'status': task[9],
-                    'last_run': task[10],
-                    'next_run': task[11],
-                    'created_at': task[12],
-                    'updated_at': task[13],
-                    'is_active': task[14],
-                    'created_by': task[15]
-                }
-            return None
-            
-        except Exception as e:
-            print(f"Error getting task by ID: {e}")
-            return None
-
-    def update_task(self, task_id, task_data):
-        """Update an existing task"""
-        connection = None
-        cursor = None
-        try:
-            connection = self.get_db_connection()
-            if not connection:
-                return False
-
-            cursor = connection.cursor()
-            query = """
-                UPDATE backup_tasks 
-                SET task_name = %s, source_path = %s, destination_path = %s,
-                    department = %s, task_type = %s, remarks = %s,
-                    scheduled_time = %s, repeat_frequency = %s,
-                    next_run = %s, status = %s, updated_at = NOW()
-                WHERE id = %s
-            """
-            cursor.execute(query, (
-                task_data['task_name'],
-                task_data['source_path'],
-                task_data['destination_path'],
-                task_data['department'],
-                task_data['task_type'],
-                task_data['remarks'],
-                task_data['scheduled_time'],
-                task_data['repeat_frequency'],
-                task_data['next_run'],
-                task_data['status'],
-                task_id
-            ))
-            connection.commit()
-            # Reschedule tasks
-            self.schedule_all_tasks()
-            return cursor.rowcount > 0
-
-        except Exception as e:
-            print(f"Error updating task: {e}")
-            if connection:
-                connection.rollback()
-            return False
-
-        finally:
-            if cursor:
-                cursor.close()
-            if connection:
-                connection.close()
-   
-    def delete_task(self, task_id):
-        """Delete a task and its related logs safely using task_id"""
-        connection = None
-        cursor = None
-        try:
-            connection = self.get_db_connection()
-            if not connection:
-                return False
-
-            cursor = connection.cursor()
-
-            # Step 1: Delete from backup_logs where task_id matches
-            cursor.execute("DELETE FROM backup_logs WHERE task_id = %s", (task_id,))
-
-            # Step 2: Delete the actual task
-            cursor.execute("DELETE FROM backup_tasks WHERE id = %s", (task_id,))
-
-            # Step 3: Remove scheduled job if any
-            try:
-                scheduler.remove_job(f'backup_task_{task_id}')
-            except:
-                pass
-
-            connection.commit()
-            return True
-
-        except Exception as e:
-            print(f"Error deleting task: {e}")
-            if connection:
-                connection.rollback()
-            return False
-
-        finally:
-            if cursor:
-                cursor.close()
-            if connection:
-                connection.close()
-
-    def send_failure_notification(self, task_name, error_msg, task_details: dict | None = None):
-        """Send email notification for failed backups"""
-        try:
-            # Create email message
-            msg = MIMEMultipart()
-            msg['From'] = EMAIL_CONFIG['sender_email']
-            msg['To'] = ', '.join(EMAIL_CONFIG['notification_emails'])
-            msg['Subject'] = f"NHPC Backup Failed: {task_name}"
-            
-            # Create email body
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            body = f"""
-            <html>
-            <body>
-                <h2 style="color: #d32f2f;">NHPC Backup System - Task Failure Alert</h2>
-                
-                <h3>Task Information:</h3>
-                <ul>
-                    <li><strong>Task Name:</strong> {task_name}</li>
-                    <li><strong>Failure Time:</strong> {current_time}</li>
-                    <li><strong>Status:</strong> <span style="color: #d32f2f;">FAILED</span></li>
-                </ul>
-                
-                <h3>Error Details:</h3>
-                <div style="background-color: #ffebee; padding: 10px; border-left: 4px solid #d32f2f; margin: 10px 0;">
-                    <pre>{error_msg}</pre>
-                </div>
-            """
-            
-            if task_details:
-                body += f"""
-                <h3>Additional Task Details:</h3>
-                <ul>
-                    <li><strong>Source Path:</strong> {task_details.get('source_path', 'N/A')}</li>
-                    <li><strong>Destination Path:</strong> {task_details.get('destination_path', 'N/A')}</li>
-                    <li><strong>Department:</strong> {task_details.get('department', 'N/A')}</li>
-                    <li><strong>Task Type:</strong> {task_details.get('task_type', 'N/A')}</li>
-                    <li><strong>Scheduled Time:</strong> {task_details.get('scheduled_time', 'N/A')}</li>
-                    <li><strong>Frequency:</strong> {task_details.get('repeat_frequency', 'N/A')}</li>
-                </ul>
-                """
-            
-            body += """
-                <h3>Recommended Actions:</h3>
-                <ul>
-                    <li>Check the source and destination paths for accessibility</li>
-                    <li>Verify disk space availability</li>
-                    <li>Review system permissions</li>
-                    <li>Check the backup manager logs for more details</li>
-                    <li>Contact the system administrator if the issue persists</li>
-                </ul>
-                
-                <p style="margin-top: 20px; font-size: 12px; color: #666;">
-                    This is an automated notification from the NHPC Backup Management System.<br>
-                    Please do not reply to this email.
-                </p>
-            </body>
-            </html>
-            """
-            
-            # Attach HTML body
-            msg.attach(MIMEText(body, 'html'))
-            
-            # Connect to SMTP server and send email
-            server = smtplib.SMTP(EMAIL_CONFIG['smtp_server'], EMAIL_CONFIG['smtp_port'])
-            
-            if EMAIL_CONFIG['use_tls']:
-                server.starttls()  # Enable TLS encryption
-            
-            server.login(EMAIL_CONFIG['sender_email'], EMAIL_CONFIG['sender_password'])
-            
-            # Send email to all notification recipients
-            for recipient in EMAIL_CONFIG['notification_emails']:
-                server.sendmail(EMAIL_CONFIG['sender_email'], recipient, msg.as_string())
-            
-            server.quit()
-            
-            logging.info(f"Failure notification sent for task: {task_name} to {EMAIL_CONFIG['notification_emails']}")
-            return True
-            
-        except Exception as e:
-            logging.error(f"Failed to send email notification for task {task_name}: {str(e)}")
-            return False
-
     #COPY FILES OR MAIN BACKUP LOGIC
     def get_previous_file_states(self, task_id):
         """Retrieve last backup state including folders"""
@@ -818,8 +486,9 @@ class BackupManager:
         cursor.close()
         connection.close()
 
-    def execute_backup_task(self, task_id, admin_id=1):
+    def execute_backup_task(self, task_id, admin_id=None):
         """Execute a backup task with admin tracking and proper logging"""
+        
         
         if task_id in self.running_tasks:
             logging.warning(f"Task {task_id} is already running")
@@ -834,13 +503,11 @@ class BackupManager:
         cursor = connection.cursor()
         start_time = datetime.now()
         log_id = None
-        task_details = {}  # Initialize task_details for notification
-        
         try:
             # Fetch task details
             cursor.execute("""
                 SELECT task_name, source_path, destination_path, department, task_type,
-                    scheduled_time, repeat_frequency
+                    scheduled_time, repeat_frequency, created_by
                 FROM backup_tasks WHERE id = %s AND is_active = TRUE
             """, (task_id,))
             task = cursor.fetchone()
@@ -849,19 +516,14 @@ class BackupManager:
                 logging.error(f"Task {task_id} not found or inactive")
                 return
 
-            task_name, source_path, dest_path, department, task_type, scheduled_time, frequency = task
-
-            # Store task details for potential failure notification
-            task_details = {
-                'task_name': task_name,
-                'source_path': source_path,
-                'destination_path': dest_path,
-                'department': department,
-                'task_type': task_type,
-                'scheduled_time': str(scheduled_time),
-                'repeat_frequency': frequency
-            }
-
+            task_name, source_path, dest_path, department, task_type, scheduled_time, frequency, created_by = task
+            # Associate scheduled tasks with creator
+            log_admin_id = admin_id if admin_id is not None else created_by
+            
+            # Start log entry using log_admin_id
+            log_id = self.log_task_execution(
+                task_id, log_admin_id, 'running', f"Starting backup: {task_name}"
+            )
             # Normalize scheduled_time to time object
             if isinstance(scheduled_time, timedelta):
                 total_seconds = scheduled_time.total_seconds()
@@ -870,7 +532,6 @@ class BackupManager:
                 scheduled_time = dt_time(hours, minutes)
             elif isinstance(scheduled_time, str):
                 scheduled_time = datetime.strptime(scheduled_time, '%H:%M').time()
-                
             # ✅ Check if source path exists
             if not os.path.exists(source_path):
                 msg = f"Source path does not exist: {source_path}"
@@ -887,11 +548,7 @@ class BackupManager:
                     total_size_mb=0.0,
                     duration_seconds=0
                 )
-                
-                # 🔥 ADD FAILURE NOTIFICATION HERE - Source path doesn't exist
-                # self.send_failure_notification(task_name, msg, task_details)
                 return
-                
             # Update status and last_run before actual backup
             cursor.execute("""
                 UPDATE backup_tasks
@@ -1005,19 +662,13 @@ class BackupManager:
             except Exception as log_err:
                 logging.error(f"Failed to update task log for task {task_id}: {log_err}")
 
-            # 🔥 ADD FAILURE NOTIFICATION HERE - General exception
-            task_name = task_details.get('task_name', f'Task ID {task_id}')
-            error_msg = f"Backup task failed with error: {str(e)}"
-            self.send_failure_notification(task_name, error_msg, task_details)
-            
             logging.error(f"Backup task {task_id} error: {str(e)}")
 
         finally:
             cursor.close()
             connection.close()
             self.running_tasks.discard(task_id)
-    
-    
+
     def calculate_folder_size(self, folder_path):
         """Calculate folder size in MB"""
         try:
@@ -1094,7 +745,7 @@ class BackupManager:
         
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT id, task_name, next_run, repeat_frequency, scheduled_time, created_by
+            SELECT id, task_name, next_run, repeat_frequency, scheduled_time
             FROM backup_tasks 
             WHERE is_active = TRUE AND status != 'paused'
         """)
@@ -1103,7 +754,7 @@ class BackupManager:
         cursor.close()
         connection.close()
         
-        for task_id, task_name, next_run, frequency, scheduled_time, created_by in tasks:
+        for task_id, task_name, next_run, frequency, scheduled_time in tasks:
             try:
                 scheduler.remove_job(f'backup_task_{task_id}')
             except:
@@ -1142,9 +793,9 @@ class BackupManager:
                 )
             
             scheduler.add_job(
-                func=lambda tid=task_id,aid=created_by: threading.Thread(
+                func=lambda tid=task_id: threading.Thread(
                     target=self.execute_backup_task, 
-                    args=(tid, aid)  # None for scheduled tasks
+                    args=(tid, None)  # None for scheduled tasks
                 ).start(),
                 trigger=trigger,
                 id=f'backup_task_{task_id}',
@@ -1153,9 +804,6 @@ class BackupManager:
             )
             
             logging.info(f"Scheduled task: {task_name} (ID: {task_id})")
-
-    
-
 
 # Initialize backup manager
 backup_manager = BackupManager()
@@ -1255,21 +903,13 @@ def add_admin():
 @app.route('/profile')
 @login_required
 def profile():
-    """Admin profile page showing their tasks and activity"""
+    """Admin profile page showing their task activity"""
     admin_id = session['admin_id']
-    
-    # Get admin's tasks
-    admin_tasks = backup_manager.get_admin_tasks(admin_id)
-    print("Admin ID:", admin_id)
-    print("Admin Tasks:", admin_tasks)
-
-    # Get task history (existing function)
     task_history = backup_manager.get_admin_task_history(admin_id)
     
-    return render_template('profile.html',
+    return render_template('profile.html', 
                          admin_name=session['admin_name'],
                          admin_email=session['admin_email'],
-                         admin_tasks=admin_tasks,
                          task_history=task_history)
 
 # Protected Routes (existing routes with @login_required)
@@ -1341,12 +981,10 @@ def add_task():
         remarks = request.form['remarks']
         scheduled_time = request.form['scheduled_time']
         repeat_frequency = request.form['repeat_frequency']
-
+        
         scheduled_time_obj = datetime.strptime(scheduled_time, '%H:%M').time()
         next_run = backup_manager.calculate_next_run(scheduled_time_obj, repeat_frequency)
-
-        admin_id = session.get('admin_id', 1)  # default to superadmin if not found
-
+        
         connection = backup_manager.get_db_connection()
         if connection:
             cursor = connection.cursor()
@@ -1354,120 +992,28 @@ def add_task():
                 cursor.execute("""
                     INSERT INTO backup_tasks 
                     (task_name, source_path, destination_path, department, task_type, 
-                     remarks, scheduled_time, repeat_frequency, next_run, created_by)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     remarks, scheduled_time, repeat_frequency, next_run)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     task_name, source_path, destination_path, department, task_type,
-                    remarks, scheduled_time, repeat_frequency, next_run, admin_id
+                    remarks, scheduled_time, repeat_frequency, next_run
                 ))
-
+                
                 connection.commit()
                 task_id = cursor.lastrowid
                 cursor.close()
                 connection.close()
-
+                
                 backup_manager.schedule_all_tasks()
                 flash('Backup task added successfully!', 'success')
                 return redirect(url_for('dashboard'))
-
+                
             except Error as e:
                 flash(f'Error adding task: {str(e)}', 'error')
                 cursor.close()
                 connection.close()
-
+    
     return render_template('dashboard.html')
-
-@app.route('/edit_task/<int:task_id>')
-@login_required
-def edit_task(task_id):
-    """Edit task page"""
-    admin_id = session['admin_id']
-    task = backup_manager.get_task_by_id(task_id)
-    
-    if not task:
-        flash('Task not found', 'error')
-        return redirect(url_for('profile'))
-    
-    # Check if the current admin owns this task
-    if task['created_by'] != admin_id:
-        flash('You can only edit your own tasks', 'error')
-        return redirect(url_for('profile'))
-    
-    return render_template('edit_task.html', task=task)
-
-@app.route('/edit_task/<int:task_id>', methods=['POST'])
-@login_required
-def update_task(task_id):
-    """Update task"""
-    admin_id = session['admin_id']
-    task = backup_manager.get_task_by_id(task_id)
-
-    if not task or task['created_by'] != admin_id:
-        flash('Task not found or access denied', 'error')
-        return redirect(url_for('profile'))
-
-        # Get raw time string from form
-        # Get raw time string from form
-    raw_time = request.form.get('scheduled_time', '').strip()
-
-    # Attempt to parse time in multiple formats
-    scheduled_time = None
-    for fmt in ('%H:%M', '%H:%M:%S'):
-        try:
-            scheduled_time = datetime.strptime(raw_time, fmt).time()
-            break  # stop after first successful format
-        except ValueError:
-            continue
-
-    # If parsing failed for all formats
-    if not scheduled_time:
-        flash(f"Invalid scheduled time format: '{raw_time}'", 'error')
-        return redirect(url_for('profile'))
-
-    # Frequency from form
-    repeat_frequency = request.form.get('repeat_frequency', 'daily')
-
-    # Now calculate next_run
-    next_run = backup_manager.calculate_next_run(scheduled_time, repeat_frequency)
-    status = 'scheduled' if next_run > datetime.now() else 'running'
-
-    task_data = {
-        'task_name': request.form['task_name'],
-        'source_path': request.form['source_path'],
-        'destination_path': request.form['destination_path'],
-        'department': request.form['department'],
-        'task_type': request.form['task_type'],
-        'remarks': request.form.get('remarks', ''),
-        'scheduled_time': scheduled_time,
-        'repeat_frequency': repeat_frequency,
-        'next_run': next_run,  # Pass this explicitly if needed
-        'status': status
-    }
-
-    if backup_manager.update_task(task_id, task_data):
-        flash('Task updated successfully', 'success')
-    else:
-        flash('Error updating task', 'error')
-
-    return redirect(url_for('profile'))
-
-
-@app.route('/delete_task/<int:task_id>', methods=['DELETE'])
-@login_required_ajax
-def delete_task(task_id):
-    admin_id = session['admin_id']
-    task = backup_manager.get_task_by_id(task_id)
-
-    if not task:
-        return jsonify({'success': False, 'message': 'Task not found'})
-
-    if task['created_by'] != admin_id:
-        return jsonify({'success': False, 'message': 'You can only delete your own tasks'})
-
-    if backup_manager.delete_task(task_id):
-        return jsonify({'success': True, 'message': 'Task deleted'})
-    return jsonify({'success': False, 'message': 'Could not delete task'})
-
 
 @app.route('/run_task/<int:task_id>')
 @login_required
@@ -1481,7 +1027,6 @@ def run_task(task_id):
     thread.start()
     flash('Backup task started manually', 'info')
     return redirect(url_for('dashboard'))
-
 
 @app.route('/task_logs/<int:task_id>')
 @login_required
